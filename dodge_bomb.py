@@ -3,7 +3,6 @@ import random
 import sys
 import pygame as pg
 
-
 WIDTH, HEIGHT = 1600, 900
 DELTA = {  # 移動量辞書
     pg.K_UP: (0, -5),
@@ -11,8 +10,17 @@ DELTA = {  # 移動量辞書
     pg.K_LEFT: (-5, 0),
     pg.K_RIGHT: (+5, 0),
 }
+ROTATION_SCALE = {  # 回転角度とスケールの辞書
+    (0, -5): (0, 1.0),      # 上キー
+    (0, +5): (180, 1.0),    # 下キー
+    (-5, 0): (90, 1.0),     # 左キー
+    (+5, 0): (270, 1.0),    # 右キー
+    (-5, -5): (45, 1.0),    # 左上
+    (-5, +5): (135, 1.0),   # 左下
+    (+5, -5): (315, 1.0),   # 右上
+    (+5, +5): (225, 1.0),   # 右下
+}
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
 
 def check_bound(rct: pg.Rect) -> tuple[bool, bool]:
     """
@@ -27,12 +35,11 @@ def check_bound(rct: pg.Rect) -> tuple[bool, bool]:
         tate = False
     return yoko, tate
 
-
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
-    bg_img = pg.image.load("fig/pg_bg.jpg")    
-    kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 2.0)
+    bg_img = pg.image.load("fig/pg_bg.jpg")
+    kk_img = pg.image.load("fig/3.png").convert_alpha()
     kk_rct = kk_img.get_rect()
     kk_rct.center = 900, 400
     bb_img = pg.Surface((20, 20))  # 1辺が20の空のSurfaceを作る
@@ -43,11 +50,16 @@ def main():
     vx, vy = +5, +5  # 爆弾の横方向速度，縦方向速度
     clock = pg.time.Clock()
     tmr = 0
+
+    angle = 0
+    scale = 1.0
+
     while True:
         for event in pg.event.get():
-            if event.type == pg.QUIT: 
+            if event.type == pg.QUIT:
                 return
-        screen.blit(bg_img, [0, 0]) 
+
+        screen.blit(bg_img, [0, 0])
         if kk_rct.colliderect(bb_rct):  # 衝突判定
             return  # ゲームオーバー
         key_lst = pg.key.get_pressed()
@@ -56,10 +68,17 @@ def main():
             if key_lst[k]:
                 sum_mv[0] += v[0]
                 sum_mv[1] += v[1]
+
+        if sum_mv != [0, 0]:
+            angle, scale = ROTATION_SCALE[tuple(sum_mv)]
+
         kk_rct.move_ip(sum_mv)
         if check_bound(kk_rct) != (True, True):
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
-        screen.blit(kk_img, kk_rct)
+
+        rotated_img = pg.transform.rotozoom(kk_img, angle, scale)
+        rotated_rct = rotated_img.get_rect(center=kk_rct.center)
+        screen.blit(rotated_img, rotated_rct)
 
         bb_rct.move_ip(vx, vy)
         yoko, tate = check_bound(bb_rct)
@@ -71,7 +90,6 @@ def main():
         pg.display.update()
         tmr += 1
         clock.tick(50)
-
 
 if __name__ == "__main__":
     pg.init()
