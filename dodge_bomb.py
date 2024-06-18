@@ -11,14 +11,14 @@ DELTA = {  # 移動量辞書
     pg.K_RIGHT: (+5, 0),
 }
 ROTATION_SCALE = {  # 回転角度とスケールの辞書
-    (0, -5): (0, 1.0),      # 上キー
-    (0, +5): (180, 1.0),    # 下キー
-    (-5, 0): (90, 1.0),     # 左キー
-    (+5, 0): (270, 1.0),    # 右キー
-    (-5, -5): (45, 1.0),    # 左上
-    (-5, +5): (135, 1.0),   # 左下
+    (0, -5): (270, 1.0),      # 上キー
+    (0, +5): (90, 1.0),    # 下キー
+    (-5, 0): (0, 1.0),     # 左キー
+    (+5, 0): (0, 1.0),    # 右キー
+    (-5, -5): (315, 1.0),    # 左上
+    (-5, +5): (45, 1.0),   # 左下
     (+5, -5): (315, 1.0),   # 右上
-    (+5, +5): (225, 1.0),   # 右下
+    (+5, +5): (45, 1.0),   # 右下
 }
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -71,6 +71,10 @@ def main():
 
         if sum_mv != [0, 0]:
             angle, scale = ROTATION_SCALE[tuple(sum_mv)]
+            if sum_mv[0] > 0:  # 右方向
+                flip_horizontal = True
+            else:
+                flip_horizontal = False
 
         kk_rct.move_ip(sum_mv)
         if check_bound(kk_rct) != (True, True):
